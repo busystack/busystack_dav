@@ -300,6 +300,7 @@ final class DavHttpTransport {
         );
       } on DavException catch (error) {
         lastError = error;
+        if (error is DavRequestNotDispatchedException) rethrow;
         if (context.isCancelled) context.throwIfCancelled();
         if (attempt == attempts || !_isRetryableException(error)) {
           rethrow;
@@ -307,6 +308,7 @@ final class DavHttpTransport {
         await context.waitFor(_delay(_retryDelay(null, attempt)));
       } on Object catch (error) {
         lastError = error;
+        if (error is DavRequestNotDispatchedException) rethrow;
         if (context.isCancelled) context.throwIfCancelled();
         if (attempt == attempts) {
           throw _networkException(error, request.correlationId);
@@ -380,6 +382,7 @@ final class DavHttpTransport {
           request.correlationId,
         );
       } catch (error) {
+        if (error is DavRequestNotDispatchedException) rethrow;
         if (request.mutationMayHaveCommitted &&
             !const {
               'GET',

@@ -101,7 +101,8 @@ final class NextcloudLoginFlowV2 {
         final returnedServer = normalizeNextcloudServer(
           response.$2['server'] as String,
         );
-        if (!sameDavOrigin(server, returnedServer))
+        if (!sameDavOrigin(server, returnedServer) ||
+            returnedServer.normalizePath().path != server.normalizePath().path)
           throw const FormatException('Untrusted returned server');
         final loginName = response.$2['loginName'],
             password = response.$2['appPassword'];
@@ -136,7 +137,8 @@ final class NextcloudLoginFlowV2 {
     if (!sameDavOrigin(server, uri) ||
         uri.userInfo.isNotEmpty ||
         uri.fragment.isNotEmpty ||
-        uri.scheme != 'https') {
+        uri.scheme != 'https' ||
+        !uri.normalizePath().path.startsWith(server.normalizePath().path)) {
       throw const FormatException('Untrusted login destination');
     }
     return uri;

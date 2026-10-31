@@ -1,3 +1,5 @@
+import 'terminating_http_client.dart';
+
 // Streaming transfer behavior extracted from BusyFiles (Apache-2.0).
 import 'dart:async';
 import 'dart:io';
@@ -124,7 +126,7 @@ final class DavTransferClient {
 
     try {
       final response = await _await(
-        client.send(request).timeout(headerTimeout),
+        _send(request, abort.future).timeout(headerTimeout),
         abort.future,
       );
       Stream<List<int>> body() async* {
@@ -182,7 +184,7 @@ final class DavTransferClient {
           });
     var count = 0;
     final sending = _await(
-      client.send(request).timeout(headerTimeout),
+      _send(request, abort.future).timeout(headerTimeout),
       abort.future,
     );
     final pumping = (() async {
@@ -226,6 +228,7 @@ final class DavTransferClient {
         correlationId: 'transfer',
       );
     } catch (error) {
+      if (error is DavRequestNotDispatchedException) rethrow;
       if (error is DavException &&
           error.statusCode != null &&
           error.statusCode! < 500)
@@ -235,6 +238,20 @@ final class DavTransferClient {
       if (!abort.isCompleted) abort.complete();
       await sub.cancel();
     }
+  }
+
+  Future<http.StreamedResponse> _send(
+    http.BaseRequest request,
+    Future<void> terminate,
+  ) {
+    final selected = client;
+    return selected is TerminatingHttpClient
+        ? selected.sendTerminating(
+            request,
+            terminate: terminate,
+            connectionTimeout: headerTimeout,
+          )
+        : selected.send(request);
   }
 
   Future<T> _await<T>(Future<T> pending, Future<void> abort) => Future.any([

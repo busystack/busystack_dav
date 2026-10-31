@@ -23,3 +23,11 @@ dart run example/main.dart
 Requires Dart 3.13.4; XML is 7.0.1. Copied BusyMax XML 6.6.1 behavior was ported inside this package; donor resolutions were not changed. See BusyCards' donor map, regression tests and streaming measurements. BusyFiles file-specific IDs, checksums, permissions, chunking, OCS/share/trash/version operations remain in BusyFiles. Existing apps have not adopted these APIs in Milestone 1.
 
 The reproducible local source release contains all four new sibling targets. Future publication can use exact hosted versions of this same package without adding packages; nothing is published here. Apache-2.0, with donor attribution in NOTICE.
+
+
+Transport adapters may implement `DavRequestNotDispatchedException` only when
+an enforcement boundary proves that no HTTP bytes were transmitted. The
+transport preserves such failures without retry or unknown-mutation wrapping.
+`DavException` is extensible so applications can retain typed review details.
+Unproven write failures still require remote reconciliation. Nextcloud Login
+Flow endpoints and canonical handoffs remain inside the configured installation.

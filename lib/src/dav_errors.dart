@@ -65,9 +65,16 @@ final class DavErrorDisposition {
   final bool cachedDataUsable;
 }
 
+/// Explicit transport proof that no HTTP bytes were dispatched. Implementers
+/// must produce this only at a boundary before request transmission, never for
+/// timeouts or connection loss after dispatch. Such failures are not retried or
+/// converted into unknown mutation outcomes.
+abstract interface class DavRequestNotDispatchedException
+    implements Exception {}
+
 /// A typed DAV failure whose diagnostic representation excludes request URLs,
 /// response bodies, credentials, and user calendar content.
-final class DavException implements Exception {
+class DavException implements Exception {
   const DavException({
     required this.kind,
     required this.code,
