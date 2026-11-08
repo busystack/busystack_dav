@@ -12,6 +12,21 @@ void main() {
       for (final unit in text.codeUnits)
         if (little) ...[unit & 255, unit >> 8] else ...[unit >> 8, unit & 255],
     ];
+    test('endian-specific UTF-16 without BOM, little=$little', () async {
+      const xml = ' <?xml version="1.0"?><root/>';
+      final bytes = encode(xml).sublist(2);
+      expect(const DavXmlDecoder().convert(bytes), xml);
+      expect(
+        await Stream.fromIterable(bytes.map((b) => [b]))
+            .transform(const DavXmlDecoder())
+            .join(),
+        xml,
+      );
+      final document = const DavXmlParser().parseDocument(
+        Uint8List.fromList(encode('<root/>').sublist(2)),
+      );
+      expect(document.rootElement.name.local, 'root');
+    });
     test('all UTF-16 chunk boundaries, little=$little', () async {
       final bytes = encode('Café 😀 text');
       for (var split = 0; split <= bytes.length; split++) {

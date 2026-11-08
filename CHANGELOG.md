@@ -1,6 +1,6 @@
 # Unreleased
 
-- Decode required BOM-marked UTF-16 DAV XML in buffered and streaming parsers.
+- Decode UTF-16 (including endian-specific input without a BOM) DAV XML in buffered and streaming parsers.
   Strict surrogate/byte validation, DTD/entity rejection, cancellation and all
   existing resource limits remain enforced. No third-party XML code changed.
 
