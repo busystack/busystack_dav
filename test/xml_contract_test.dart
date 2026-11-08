@@ -7,6 +7,42 @@ import 'package:busystack_dav/busystack_dav.dart';
 import 'package:test/test.dart';
 
 void main() {
+  for (final littleEndian in [false, true]) {
+    for (final streamed in [false, true]) {
+      test('UTF-16 DAV XML, littleEndian=$littleEndian, streamed=$streamed', () async {
+        const xml =
+            '<?xml version="1.0" encoding="UTF-16"?>'
+            '<d:multistatus xmlns:d="DAV:"><d:response><d:href>/c/😀.ics</d:href>'
+            '<d:propstat><d:prop><d:displayname>Café 😀</d:displayname></d:prop>'
+            '<d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>';
+        final bytes = Uint8List.fromList([
+          if (littleEndian) ...[0xff, 0xfe] else ...[0xfe, 0xff],
+          for (final unit in xml.codeUnits)
+            if (littleEndian) ...[
+              unit & 255,
+              unit >> 8,
+            ] else ...[
+              unit >> 8,
+              unit & 255,
+            ],
+        ]);
+        final result = streamed
+            ? await parseDavMultistatusStream(
+                Stream.fromIterable(bytes.map((b) => [b])),
+                cancellation: DavCancellationToken(),
+              )
+            : const DavXmlParser().parseMultistatus(bytes);
+        expect(result.responses.single.href, '/c/😀.ics');
+        expect(
+          result.responses.single
+              .successfulProperty(davNamespace, 'displayname')
+              ?.text,
+          'Café 😀',
+        );
+      });
+    }
+  }
+
   test(
     'stalled incremental XML is cancelled without waiting for another chunk',
     () async {

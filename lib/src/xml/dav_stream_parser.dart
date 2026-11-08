@@ -7,6 +7,7 @@ import 'package:xml/xml_events.dart';
 
 import '../http/dav_http_transport.dart';
 import 'dav_xml.dart';
+import 'dav_xml_encoding.dart';
 
 /// Nothing is returned until the entire document validates. A caller must not
 /// advance a cursor or delete unseen members on an incomplete response.
@@ -55,7 +56,7 @@ Future<DavMultistatus> parseDavMultistatusStream(
   final responses = <DavMultistatusResponse>[];
   await for (final events
       in bounded()
-          .transform(utf8.decoder)
+          .transform(const DavXmlDecoder())
           .toXmlEvents(
             validateDocument: true,
             validateNamespace: true,

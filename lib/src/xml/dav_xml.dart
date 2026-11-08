@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:xml/xml.dart';
 
 import '../dav_errors.dart';
+import 'dav_xml_encoding.dart';
 
 const davNamespace = 'DAV:';
 const caldavNamespace = 'urn:ietf:params:xml:ns:caldav';
@@ -205,7 +206,7 @@ final class DavXmlParser {
         correlationId,
       );
     }
-    final source = _decodeUtf8(bytes, correlationId);
+    final source = _decodeXml(bytes, correlationId);
     if (RegExp(
       r'<!\s*(DOCTYPE|ENTITY)\b',
       caseSensitive: false,
@@ -377,14 +378,14 @@ final class DavXmlParser {
     visit(document, 0);
   }
 
-  String _decodeUtf8(Uint8List bytes, String? correlationId) {
+  String _decodeXml(Uint8List bytes, String? correlationId) {
     try {
-      return utf8.decode(bytes, allowMalformed: false);
+      return const DavXmlDecoder().convert(bytes);
     } on FormatException {
       throw _error(
         DavErrorKind.malformedXml,
         'DavXmlInvalidUtf8',
-        'The DAV server returned XML that is not valid UTF-8.',
+        'The DAV server returned XML with an invalid character encoding.',
         correlationId,
       );
     }
